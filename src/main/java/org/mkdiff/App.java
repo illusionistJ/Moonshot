@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.mkdiff.client.EchoClient;
 import org.mkdiff.server.EchoServer;
+import org.mkdiff.server.HttpServer;
 
 
 public class App
@@ -25,26 +26,32 @@ public class App
 
     public static void main( String[] args ) throws Exception
     {
-        Runtime.getRuntime().addShutdownHook(new Thread()
-        {
-            public void run()
-            {
-                LOGGER.info("[Moonshot] Server is stopped.");
-            }
-        });
-
         App app=new App();
 
         try{
             CommandLineParser parser = new DefaultParser();
             CommandLine cmd = parser.parse(app.getOptions(), args);
+
+            Runtime.getRuntime().addShutdownHook(new Thread()
+            {
+                public void run()
+                {
+                    LOGGER.info("[Moonshot] Server is stopped.");
+                }
+            });
+
             int port;
 
             switch (cmd.getOptionValue("mode")){
                 case "EchoServer":
                     port = Integer.parseInt(cmd.getOptionValue("port"));
-                    LOGGER.info("[Moonshot] Echo Server is started.");
+                    LOGGER.info("[Moonshot] Echo Server will be started.");
                     new EchoServer(port).start();
+                    break;
+                case "HttpServer":
+                    port = Integer.parseInt(cmd.getOptionValue("port"));
+                    LOGGER.info("[Moonshot] Http Server will be started.");
+                    new HttpServer(port).start();
                     break;
                 case "EchoClient":
                     port = Integer.parseInt(cmd.getOptionValue("port"));
