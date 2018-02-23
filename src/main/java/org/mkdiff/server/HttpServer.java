@@ -32,6 +32,7 @@ public class HttpServer {
                     .childHandler(new HttpPipelineInitializer());
             ChannelFuture f = b.bind().sync();
             f.channel().closeFuture().sync();
+
         }catch (Exception e){
             LOGGER.error("[Moonshot] Error occured",e);
         }finally{
