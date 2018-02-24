@@ -48,9 +48,9 @@ public class App
                     LOGGER.info("[Moonshot] Echo Server will be started.");
                     new EchoServer(port).start();
                     break;
-                case "HttpServer":
+                case "Server":
                     port = Integer.parseInt(cmd.getOptionValue("port"));
-                    LOGGER.info("[Moonshot] Http Server will be started.");
+                    LOGGER.info("[Moonshot]  Server will be started.");
                     new HttpServer(port).start();
                     break;
                 case "EchoClient":

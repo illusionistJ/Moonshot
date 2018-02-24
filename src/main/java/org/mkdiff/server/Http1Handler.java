@@ -36,8 +36,12 @@ public class Http1Handler extends SimpleChannelInboundHandler<FullHttpRequest> {
         boolean keepAlive = HttpUtil.isKeepAlive(fullHttpRequest);
 
         ByteBuf content = channelHandlerContext.alloc().buffer();
-        content.writeBytes(Http2Handler.RESPONSE_BYTES.duplicate());
-        ByteBufUtil.writeAscii(content, " - via " + fullHttpRequest.protocolVersion() + " (" + establishApproach + ")");
+
+        ByteBufUtil.writeAscii(content, "1. Protocol: \n"+ fullHttpRequest.protocolVersion() + " (" + establishApproach + ")\n\n2.Method: \n");
+        ByteBufUtil.writeAscii(content, fullHttpRequest.method().toString()+"\n\n3.Headers: \n");
+        ByteBufUtil.writeAscii(content, fullHttpRequest.headers().toString()+"\n\n4.Contents: \n");
+
+        content.writeBytes(fullHttpRequest.content().duplicate());
 
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, content);
         response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
