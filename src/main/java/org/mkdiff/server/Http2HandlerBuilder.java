@@ -17,7 +17,8 @@ public class Http2HandlerBuilder extends AbstractHttp2ConnectionHandlerBuilder<H
     }
 
     @Override
-    protected Http2Handler build(Http2ConnectionDecoder http2ConnectionDecoder, Http2ConnectionEncoder http2ConnectionEncoder, Http2Settings http2Settings) throws Exception {
+    protected Http2Handler build(Http2ConnectionDecoder http2ConnectionDecoder, Http2ConnectionEncoder http2ConnectionEncoder,
+                                 Http2Settings http2Settings) throws Exception {
         Http2Handler handler = new Http2Handler(http2ConnectionDecoder, http2ConnectionEncoder, http2Settings);
         frameListener(handler);
         return handler;

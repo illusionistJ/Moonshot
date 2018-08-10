@@ -3,8 +3,6 @@ package org.mkdiff;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.mkdiff.client.EchoClient;
-import org.mkdiff.server.EchoServer;
 import org.mkdiff.server.HttpServer;
 
 
@@ -43,29 +41,12 @@ public class App
             int port;
 
             switch (cmd.getOptionValue("mode")){
-                case "EchoServer":
-                    port = Integer.parseInt(cmd.getOptionValue("port"));
-                    LOGGER.info("[Moonshot] Echo Server will be started.");
-                    new EchoServer(port).start();
-                    break;
                 case "Server":
                     port = Integer.parseInt(cmd.getOptionValue("port"));
                     LOGGER.info("[Moonshot]  Server will be started.");
                     new HttpServer(port).start();
                     break;
-                case "EchoClient":
-                    port = Integer.parseInt(cmd.getOptionValue("port"));
-                    String host = cmd.getOptionValue("host");
-                    if (host != null){
-                        LOGGER.info("[Moonshot] Echo Client is started.");
-                        new EchoClient(host, port).start();
-                        LOGGER.info("[Moonshot] Echo Client is stopped.");
-                    }else{
-                        LOGGER.error("should insert host address with option '-h' or '--host'" );
-                    }
-                    break;
                 default:
-
                     break;
             }
 

@@ -18,8 +18,9 @@ public class Http2Handler extends Http2ConnectionHandler implements Http2FrameLi
     private static Logger LOGGER = LogManager.getLogger(Http2Handler.class);
     static final ByteBuf RESPONSE_BYTES = unreleasableBuffer(copiedBuffer("Hello World", CharsetUtil.UTF_8));
 
-    Http2Handler(Http2ConnectionDecoder decoder, Http2ConnectionEncoder encoder,Http2Settings initialSettings){
-        super(decoder,encoder, initialSettings);
+    Http2Handler(Http2ConnectionDecoder decoder, Http2ConnectionEncoder encoder,
+                           Http2Settings initialSettings) {
+        super(decoder, encoder, initialSettings);
     }
 
     private static Http2Headers http1HeadersToHttp2Headers(FullHttpRequest request) {
@@ -35,98 +36,94 @@ public class Http2Handler extends Http2ConnectionHandler implements Http2FrameLi
     }
 
     @Override
-    public void userEventTriggered(ChannelHandlerContext channelHandlerContext, Object evt) throws Exception {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof HttpServerUpgradeHandler.UpgradeEvent) {
-            HttpServerUpgradeHandler.UpgradeEvent upgradeEvent = (HttpServerUpgradeHandler.UpgradeEvent) evt;
-            onHeadersRead(channelHandlerContext, 1, http1HeadersToHttp2Headers(upgradeEvent.upgradeRequest()), 0 , true);
+            HttpServerUpgradeHandler.UpgradeEvent upgradeEvent =
+                    (HttpServerUpgradeHandler.UpgradeEvent) evt;
+            onHeadersRead(ctx, 1, http1HeadersToHttp2Headers(upgradeEvent.upgradeRequest()), 0 , true);
         }
-        super.userEventTriggered(channelHandlerContext, evt);
+        super.userEventTriggered(ctx, evt);
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable cause) throws Exception {
-        super.exceptionCaught(channelHandlerContext, cause);
-        LOGGER.error(cause);
-        channelHandlerContext.close();
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx, cause);
+        cause.printStackTrace();
+        ctx.close();
     }
 
-    private void sendResponse(ChannelHandlerContext channelHandlerContext, int streamId, ByteBuf payload) {
+    private void sendResponse(ChannelHandlerContext ctx, int streamId, ByteBuf payload) {
         Http2Headers headers = new DefaultHttp2Headers().status(OK.codeAsText());
-        encoder().writeHeaders(channelHandlerContext, streamId, headers, 0, false, channelHandlerContext.newPromise());
-        encoder().writeData(channelHandlerContext, streamId, payload, 0, true, channelHandlerContext.newPromise());
+        encoder().writeHeaders(ctx, streamId, headers, 0, false, ctx.newPromise());
+        encoder().writeData(ctx, streamId, payload, 0, true, ctx.newPromise());
     }
 
     @Override
-    public int onDataRead(ChannelHandlerContext channelHandlerContext, int i, ByteBuf byteBuf, int i1, boolean b) throws Http2Exception {
-        int processed = byteBuf.readableBytes() + i1;
-        if (b) {
-            sendResponse(channelHandlerContext, i, byteBuf.retain());
+    public int onDataRead(ChannelHandlerContext ctx, int streamId, ByteBuf data, int padding, boolean endOfStream) {
+        int processed = data.readableBytes() + padding;
+        if (endOfStream) {
+            sendResponse(ctx, streamId, data.retain());
         }
         return processed;
     }
 
     @Override
-    public void onHeadersRead(ChannelHandlerContext channelHandlerContext, int i, Http2Headers http2Headers, int i1, boolean b) throws Http2Exception {
-        if (b) {
-            ByteBuf content = channelHandlerContext.alloc().buffer();
+    public void onHeadersRead(ChannelHandlerContext ctx, int streamId,
+                              Http2Headers headers, int padding, boolean endOfStream) {
+        if (endOfStream) {
+            ByteBuf content = ctx.alloc().buffer();
             content.writeBytes(RESPONSE_BYTES.duplicate());
             ByteBufUtil.writeAscii(content, " - via HTTP/2");
-            sendResponse(channelHandlerContext, i, content);
+            sendResponse(ctx, streamId, content);
         }
     }
 
     @Override
-    public void onHeadersRead(ChannelHandlerContext channelHandlerContext, int i, Http2Headers http2Headers, int i1, short i2, boolean b, int i3, boolean b1) throws Http2Exception {
-        onHeadersRead(channelHandlerContext, i, http2Headers, i3, b1);
+    public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int streamDependency,
+                              short weight, boolean exclusive, int padding, boolean endOfStream) {
+        onHeadersRead(ctx, streamId, headers, padding, endOfStream);
     }
 
     @Override
-    public void onPriorityRead(ChannelHandlerContext channelHandlerContext, int i, int i1, short i2, boolean b) throws Http2Exception {
-
+    public void onPriorityRead(ChannelHandlerContext ctx, int streamId, int streamDependency,
+                               short weight, boolean exclusive) {
     }
 
     @Override
-    public void onRstStreamRead(ChannelHandlerContext channelHandlerContext, int i, long l) throws Http2Exception {
-
+    public void onRstStreamRead(ChannelHandlerContext ctx, int streamId, long errorCode) {
     }
 
     @Override
-    public void onSettingsAckRead(ChannelHandlerContext channelHandlerContext) throws Http2Exception {
-
+    public void onSettingsAckRead(ChannelHandlerContext ctx) {
     }
 
     @Override
-    public void onSettingsRead(ChannelHandlerContext channelHandlerContext, Http2Settings http2Settings) throws Http2Exception {
-
+    public void onSettingsRead(ChannelHandlerContext ctx, Http2Settings settings) {
     }
 
     @Override
-    public void onPingRead(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Http2Exception {
-
+    public void onPingRead(ChannelHandlerContext ctx, long data) {
     }
 
     @Override
-    public void onPingAckRead(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Http2Exception {
-
+    public void onPingAckRead(ChannelHandlerContext ctx, long data) {
     }
 
     @Override
-    public void onPushPromiseRead(ChannelHandlerContext channelHandlerContext, int i, int i1, Http2Headers http2Headers, int i2) throws Http2Exception {
-
+    public void onPushPromiseRead(ChannelHandlerContext ctx, int streamId, int promisedStreamId,
+                                  Http2Headers headers, int padding) {
     }
 
     @Override
-    public void onGoAwayRead(ChannelHandlerContext channelHandlerContext, int i, long l, ByteBuf byteBuf) throws Http2Exception {
-
+    public void onGoAwayRead(ChannelHandlerContext ctx, int lastStreamId, long errorCode, ByteBuf debugData) {
     }
 
     @Override
-    public void onWindowUpdateRead(ChannelHandlerContext channelHandlerContext, int i, int i1) throws Http2Exception {
-
+    public void onWindowUpdateRead(ChannelHandlerContext ctx, int streamId, int windowSizeIncrement) {
     }
 
     @Override
-    public void onUnknownFrame(ChannelHandlerContext channelHandlerContext, byte b, int i, Http2Flags http2Flags, ByteBuf byteBuf) throws Http2Exception {
-
+    public void onUnknownFrame(ChannelHandlerContext ctx, byte frameType, int streamId,
+                               Http2Flags flags, ByteBuf payload) {
     }
 }
